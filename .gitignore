@@ -1,0 +1,17 @@
+# 编译产物（二进制文件）
+/user-service/user-service
+*.exe
+
+# Go 测试缓存
+*.test
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# macOS
+.DS_Store
+
+# 教学文档中的二进制
+part1/

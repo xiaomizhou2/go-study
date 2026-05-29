@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go version *)",
+      "Bash(go mod *)",
+      "Bash(go build *)",
+      "Bash(./user-service)",
+      "Bash(curl -s http://localhost:8080/users)",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s http://localhost:8080/users/2)",
+      "Bash(curl -s http://localhost:8080/users/999)",
+      "Bash(go get *)",
+      "Bash(curl -s http://localhost:8080/api/v1/users)",
+      "Bash(curl -s http://localhost:8080/api/v1/users/2)",
+      "Bash(curl -s -X POST http://localhost:8080/api/v1/users -H \"Content-Type: application/json\" -d '{\"name\":\"赵六\",\"age\":35}')",
+      "Bash(pkill -f user-service)",
+      "Bash(curl -s -X PUT http://localhost:8080/api/v1/users/4 -H \"Content-Type: application/json\" -d '{\"name\":\"赵六六\",\"age\":36}')",
+      "Bash(curl -s http://localhost:8080/api/v1/users/4)",
+      "Bash(curl -s -X DELETE http://localhost:8080/api/v1/users/4 -w \"\\\\n状态码: %{http_code}\\\\n\")",
+      "Bash(curl -s -X POST http://localhost:8080/api/v1/users -H \"Content-Type: application/json\" -d '{\"name\":\"测试\",\"age\":200}')",
+      "Bash(curl -s http://localhost:8080/api/v1/health)",
+      "Bash(git init *)",
+      "Bash(git check-ignore *)",
+      "Bash(git add *)"
+    ]
+  }
+}
