@@ -3,9 +3,10 @@ package config
 import (
 	"database/sql"
 	"fmt"
-	"log"
 
+	"github.com/example/user-service/logger"
 	_ "modernc.org/sqlite"
+	"go.uber.org/zap"
 )
 
 // InitDB 根据配置初始化数据库连接
@@ -28,7 +29,10 @@ func InitDB(cfg DatabaseConfig) (*sql.DB, error) {
 		return nil, fmt.Errorf("数据库连接测试失败: %w", err)
 	}
 
-	log.Println("数据库连接成功")
+	logger.Log.Info("数据库连接成功",
+		zap.String("driver", cfg.Driver),
+		zap.String("dsn", cfg.DSN),
+	)
 
 	if err := createTables(db); err != nil {
 		return nil, fmt.Errorf("建表失败: %w", err)
@@ -50,6 +54,6 @@ func createTables(db *sql.DB) error {
 		return err
 	}
 
-	log.Println("数据表就绪")
+	logger.Log.Info("数据表就绪")
 	return nil
 }

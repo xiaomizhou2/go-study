@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 
+	"github.com/example/user-service/logger"
 	"github.com/spf13/viper"
 )
 
@@ -16,6 +17,7 @@ import (
 type Config struct {
 	Server   ServerConfig   `mapstructure:"server"`
 	Database DatabaseConfig `mapstructure:"database"`
+	Log      logger.Config  `mapstructure:"log"`
 }
 
 // ServerConfig 服务配置

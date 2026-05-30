@@ -12,3 +12,7 @@ database:
   dsn: "./user.db"
   max_open_conns: 1
   max_idle_conns: 1
+
+log:
+  level: "debug"     # debug, info, error
+  format: "text"     # json（生产）, text（开发）

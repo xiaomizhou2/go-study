@@ -6,45 +6,60 @@ import (
 
 	"github.com/example/user-service/config"
 	"github.com/example/user-service/handler"
+	"github.com/example/user-service/logger"
 	"github.com/example/user-service/middleware"
 	"github.com/example/user-service/repository"
 	"github.com/example/user-service/service"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func main() {
-	// ============ 1. 加载配置 ============
-	// 对比 Java: Spring 自动读取 application.yml
-	// Go: 手动调用，但只有一行
 	cfg, err := config.Load("./config.yaml")
 	if err != nil {
 		log.Fatalf("加载配置失败: %v", err)
 	}
-	log.Printf("配置加载成功: 端口=%s, 数据库=%s", cfg.Server.Port, cfg.Database.DSN)
 
-	// ============ 2. 初始化数据库 ============
-	// 对比 Java: @Bean DataSource 根据 application.yml 自动配置
-	// Go: 把 Config 传进去，让 database.go 自己读取参数
+	if err := logger.Init(cfg.Log); err != nil {
+		log.Fatalf("日志初始化失败: %v", err)
+	}
+	defer logger.Sync()
+
+	logger.Log.Info("配置加载成功",
+		zap.String("port", cfg.Server.Port),
+		zap.String("db", cfg.Database.DSN),
+		zap.String("log_level", cfg.Log.Level),
+	)
+
 	db, err := config.InitDB(cfg.Database)
 	if err != nil {
-		log.Fatalf("数据库初始化失败: %v", err)
+		logger.Log.Fatal("数据库初始化失败", zap.Error(err))
 	}
 	defer db.Close()
 
-	// ============ 3. 组装依赖链 ============
 	repo := repository.NewUserRepository(db)
 	svc := service.NewUserService(repo)
 	userHandler := handler.NewUserHandler(svc)
 
-	// ============ 4. 创建路由引擎 ============
+	r := setupRouter(userHandler)
+
+	printRoutes(cfg)
+	logger.Log.Info("服务启动", zap.String("addr", fmt.Sprintf("http://localhost%s", cfg.Server.Port)))
+	if err := r.Run(cfg.Server.Port); err != nil {
+		logger.Log.Fatal("服务启动失败", zap.Error(err))
+	}
+}
+
+// setupRouter 注册所有路由和中间件
+// 对比 Java: WebMvcConfigurer 或 SecurityFilterChain 配置类
+// 提取为独立函数，测试时可以直接调用拿到 *gin.Engine
+func setupRouter(h *handler.UserHandler) *gin.Engine {
 	r := gin.New()
 
-	// ============ 5. 全局中间件 ============
 	r.Use(middleware.CORS())
 	r.Use(middleware.Logger())
-	r.Use(gin.Recovery())
+	r.Use(middleware.Recovery())
 
-	// ============ 6. 注册路由 ============
 	r.GET("/api/v1/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":  "ok",
@@ -54,24 +69,19 @@ func main() {
 
 	users := r.Group("/api/v1/users")
 	{
-		users.GET("", userHandler.GetAll)
-		users.GET("/:id", userHandler.GetByID)
+		users.GET("", h.GetAll)
+		users.GET("/:id", h.GetByID)
 
 		auth := users.Group("")
 		auth.Use(middleware.Auth())
 		{
-			auth.POST("", userHandler.Create)
-			auth.PUT("/:id", userHandler.Update)
-			auth.DELETE("/:id", userHandler.Delete)
+			auth.POST("", h.Create)
+			auth.PUT("/:id", h.Update)
+			auth.DELETE("/:id", h.Delete)
 		}
 	}
 
-	// ============ 7. 启动服务 ============
-	printRoutes(cfg)
-	log.Printf("服务启动在 http://localhost%s", cfg.Server.Port)
-	if err := r.Run(cfg.Server.Port); err != nil {
-		log.Fatalf("服务启动失败: %v", err)
-	}
+	return r
 }
 
 func printRoutes(cfg *config.Config) {

@@ -1,0 +1,19 @@
+# 编译产物
+user-service
+*.exe
+*.db
+
+# 测试
+*_test.go
+
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+
+# Claude
+.claude
