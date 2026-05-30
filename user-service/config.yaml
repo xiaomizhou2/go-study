@@ -1,0 +1,14 @@
+# user-service 配置文件
+# 对比 Java: src/main/resources/application.yml
+#
+# Viper 会自动将下划线/连字符的键名映射到结构体的驼峰字段
+# 比如 server.port → ServerConfig.Port
+
+server:
+  port: ":8080"
+
+database:
+  driver: "sqlite"
+  dsn: "./user.db"
+  max_open_conns: 1
+  max_idle_conns: 1
